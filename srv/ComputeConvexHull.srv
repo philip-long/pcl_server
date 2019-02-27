@@ -1,0 +1,6 @@
+geometry_msgs/Point[] vertices # Unordered list of vertices in space. 
+bool compute_volume	       # Compute the volume or not
+---
+float64 volume			# Volume of the convex hull
+shape_msgs/Mesh   mesh          # A ros shape-msgs mesh 
+bool success                    # success flag
