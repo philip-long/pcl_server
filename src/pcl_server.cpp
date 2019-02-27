@@ -16,9 +16,7 @@
 
 
 bool computeConvexHull ( pcl_server::ComputeConvexHullRequest &req,
-                                    pcl_server::ComputeConvexHullResponse &resp ) {
-
-
+                         pcl_server::ComputeConvexHullResponse &resp ) {
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_hull ( new pcl::PointCloud<pcl::PointXYZ> );
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_projected ( new pcl::PointCloud<pcl::PointXYZ> );
@@ -42,44 +40,35 @@ bool computeConvexHull ( pcl_server::ComputeConvexHullRequest &req,
     } catch ( ... ) {
         ROS_ERROR ( "qhull error" );
         resp.success=false;
-        return 0.0;
+        return false;
     }
 
     resp.volume=chull.getTotalVolume();
-  
+
 
     if ( ! ( cloud_hull->points.empty() ) ) {
 
         std::vector<geometry_msgs::Point> points;
         points.clear();
-        
-	resp.mesh.vertices.resize(cloud_hull->points.size());
-	for ( int var = 0; var < cloud_hull->points.size(); ++var ) {
-	  resp.mesh.vertices[var].x=cloud_hull->points[var].x;
-	  resp.mesh.vertices[var].y=cloud_hull->points[var].y;
-	  resp.mesh.vertices[var].z=cloud_hull->points[var].z;
-	}
-	
-        // polygons is a vector of triangles represented by 3 indices
-        // The indices correspond to points in cloud_hull
-        // Therefore for each triangle in the polgyon
-        // we find its three vertices and extract their x y z coordinates
-        // this is then put in a
-        resp.mesh.triangles.resize(polygons.size());
-        for ( int tri = 0; tri<polygons.size(); ++tri ) {
-            pcl::Vertices triangle=polygons[tri];	    	    
-            for ( int var = 0; var<3; ++var ) {
-		resp.mesh.triangles[tri].vertex_indices[var]=triangle.vertices[var];  
-                geometry_msgs::Point pp;
-                pp.x=cloud_hull->points[triangle.vertices[var]].x;
-                pp.y=cloud_hull->points[triangle.vertices[var]].y;
-                pp.z=cloud_hull->points[triangle.vertices[var]].z;
-                
-            }
+
+        resp.mesh.vertices.resize ( cloud_hull->points.size() );
+        for ( int var = 0; var < cloud_hull->points.size(); ++var ) {
+            resp.mesh.vertices[var].x=cloud_hull->points[var].x;
+            resp.mesh.vertices[var].y=cloud_hull->points[var].y;
+            resp.mesh.vertices[var].z=cloud_hull->points[var].z;
         }
 
+        // Polygons is a vector of triangles represented by 3 indices
+        // The indices correspond to points in cloud_hull
+        resp.mesh.triangles.resize ( polygons.size() );
+        for ( int tri = 0; tri<polygons.size(); ++tri ) {
+            pcl::Vertices triangle=polygons[tri];
+            for ( int var = 0; var<3; ++var ) {
+                resp.mesh.triangles[tri].vertex_indices[var]=triangle.vertices[var];
+            }
+        }
     } else {
-        ROS_WARN ( "plotPolytope: Hull empty" );
+        ROS_WARN ( "Empty Hull" );
     }
     resp.success=true;
     return true;
@@ -90,8 +79,8 @@ bool computeConvexHull ( pcl_server::ComputeConvexHullRequest &req,
 int main ( int argc, char **argv ) {
     ros::init ( argc, argv, "pcl_server" ); // ros init
     ros::NodeHandle nh; // Create a node handle and start the node
-    ros::ServiceServer service = nh.advertiseService("compute_convex_hull", computeConvexHull);
-    ROS_INFO("PCL SERVER RUNNING.");
+    ros::ServiceServer service = nh.advertiseService ( "compute_convex_hull", computeConvexHull );
+    ROS_INFO ( "PCL SERVER RUNNING." );
     ros::spin();
     return 0;
 }
